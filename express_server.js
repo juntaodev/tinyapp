@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const cookieSession = require('cookie-session');
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 app.use(cookieSession({
   name: 'session',
