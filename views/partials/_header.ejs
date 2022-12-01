@@ -20,19 +20,19 @@
     </div>
     
     <div>
-      <div class="navbar-nav">
+      
       <% if (!user || user === undefined) { %>
+      <div class="navbar-nav">
         <a class="nav-item nav-link" href="/login">Login</a>
         <a class="nav-item nav-link" href="/register">Register</a>
       </div>
       <% } else { %>
-      <form class="form-inline" action="/logout" method="POST">
-  
-        <div class="form-group mb-2">
+      <div class="navbar-nav">
+        <form class="form-inline" action="/logout" method="POST">
           <label style="margin-right: 1em; font-size: large;">Logged In As: <%- user.email %></label>
           <button type="submit" class="btn btn-outline-dark">Logout</button>
-        </div>
-      </form>
+        </form>
+      </div>
       <% } %>
     </div>
   </nav>
