@@ -34,10 +34,9 @@ const users = {
 const getUserByEmail = (userEmail) => {
   for (const user in users) {
     if (users[user].email === userEmail) {
-      return true;
+      return users[user];
     }
   }
-  return false;
 };
 
 app.get("/", (req, res) => {
@@ -101,17 +100,32 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  res.redirect("/login");
+  const templateVars = { user: users[req.cookies["user_id"]], cookies: req.cookies  };
+  res.render("user_login", templateVars);
 });
 
 app.post("/login", (req,res) => {
-  
+  const userEmail = req.body.email;
+  const password = req.body.password;
+  const getUser = getUserByEmail(userEmail);
+
+  if (!getUser) {
+    return res.send("403 status code error: Email not found");
+  }
+
+  if (getUser) {
+    if (getUser.password !== password) {
+      return res.send("403 status code error: Incorrect password");
+    } else {
+      res.cookie("user_id", getUser.id);
+    }
+  }
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 
 app.get("/register", (req, res) => {
