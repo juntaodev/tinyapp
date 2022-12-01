@@ -62,12 +62,18 @@ app.get("/urls", (req, res)=> {
 
 app.get("/urls/new", (req, res) => {
   const templateVars = { user: users[req.cookies["user_id"]], urls: urlDatabase, cookies: req.cookies  };
+  if (req.cookies.user_id === undefined) {
+    return res.redirect("/login");
+  }
   res.render("urls_new", templateVars);
 });
 
 app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
   const shortURL = generateRandomString();
+  if (req.cookies.user_id === undefined) {
+    return res.send("<html><body><h3>Error 401: Must be logged in to shorten URL's</h3></body></html>");
+  }
   urlDatabase[shortURL] = longURL;
   res.redirect(`/urls/${shortURL}`);
 });
@@ -83,8 +89,12 @@ app.get("/urls/:id", (req, res) => {
 });
 
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id];
-  res.redirect(longURL);
+  const shortURL = req.params.id;
+  for (const url in urlDatabase) {
+    if (url !== shortURL) {
+      return res.send("<html><body><h3>Error 404: URL not found</h3></body></html>");
+    }
+  }
 });
 
 app.post("/urls/:id/delete", (req,res) => {
@@ -113,12 +123,12 @@ app.post("/login", (req,res) => {
   const getUser = getUserByEmail(userEmail);
 
   if (!getUser) {
-    return res.send("403 status code error: Email not found");
+    return res.send("<html><body><h3>Error 403: Email not found</h3></body></html>");
   }
 
   if (getUser) {
     if (getUser.password !== password) {
-      return res.send("403 status code error: Incorrect password");
+      return res.send("<html><body><h3>Error 403: Incorrect password</h3></body></html>");
     } else {
       res.cookie("user_id", getUser.id);
     }
@@ -145,11 +155,11 @@ app.post("/register", (req, res) => {
   const password = req.body.password;
 
   if (userEmail === "" || password === "") {
-    return res.send("400 status code error: Empty field(s), check email and/or password");
+    return res.send("<html><body><h3>Error 400: Empty field(s), check email and/or password</h3></body></html>");
   }
 
   if (getUserByEmail(userEmail)) {
-    return res.send("400 status code error: Email already exists");
+    return res.send("<html><body><h3>Error 400: Email already exists</h3></body></html>");
   }
 
   users[userID] = {
