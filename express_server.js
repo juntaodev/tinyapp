@@ -128,6 +128,19 @@ app.get("/u/:id", (req, res) => {
 
 app.post("/urls/:id/delete", (req,res) => {
   delete urlDatabase[req.params.id];
+  const id = req.cookies.user_id;
+
+  if (!urlDatabase[req.params.id]) {
+    return res.send("<html><body><h3>Error 401: URL does not exist</h3></body></html>");
+  }
+
+  if (!id) {
+    return res.send("<html><body><h3>Error 401: Must be logged in to delete URL's</h3></body></html>");
+  }
+
+  if (id !== urlDatabase[req.params.id].userID) {
+    return res.send("<html><body><h3>Error 401: This URL does not belong to you</h3></body></html>");
+  }
   res.redirect("/urls");
 });
 
@@ -137,6 +150,14 @@ app.post("/urls/:id", (req, res) => {
 
   if (!id) {
     return res.send("<html><body><h3>Error 401: Must be logged in to shorten URL's</h3></body></html>");
+  }
+  
+  if (!urlDatabase[shortURL]) {
+    return res.send("<html><body><h3>Error 404: URL does not exist</h3></body></html>");
+  }
+
+  if (id !== urlDatabase[shortURL].userID || !id) {
+    return res.send("<html><body><h3>Error 401: This URL does not belong to you</h3></body></html>");
   }
   urlDatabase[shortURL].longURL = `http://${req.body.longURL}`;
   res.redirect(`/urls/${shortURL}`);
