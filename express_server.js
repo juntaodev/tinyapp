@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const cookieParser = require('cookie-parser');
+const bcrypt = require("bcryptjs");
 
 app.use(cookieParser());
 
@@ -144,14 +145,14 @@ app.post("/urls/:id/delete", (req,res) => {
   res.redirect("/urls");
 });
 
-app.post("/urls/:id", (req, res) => {
+app.post("/urls/:id/update", (req, res) => {
   const shortURL = req.params.id;
   const id = req.cookies.user_id;
 
   if (!id) {
     return res.send("<html><body><h3>Error 401: Must be logged in to shorten URL's</h3></body></html>");
   }
-  
+
   if (!urlDatabase[shortURL]) {
     return res.send("<html><body><h3>Error 404: URL does not exist</h3></body></html>");
   }
@@ -175,19 +176,18 @@ app.get("/login", (req, res) => {
 app.post("/login", (req,res) => {
   const userEmail = req.body.email;
   const password = req.body.password;
-  const getUser = getUserByEmail(userEmail);
+  const user = getUserByEmail(userEmail);
 
-  if (!getUser) {
+  if (!user) {
     return res.send("<html><body><h3>Error 403: Email not found</h3></body></html>");
   }
 
-  if (getUser) {
-    if (getUser.password !== password) {
-      return res.send("<html><body><h3>Error 403: Incorrect password</h3></body></html>");
-    } else {
-      res.cookie("user_id", getUser.id);
-    }
+  if (!bcrypt.compareSync(password, user.password)) {
+    res.status(403);
+    res.send('Incorrect password\n<button onclick="history.back()">Back</button>');
+    return;
   }
+  res.cookie("user_id", user.id);
   res.redirect("/urls");
 });
 
@@ -198,7 +198,7 @@ app.post("/logout", (req, res) => {
 
 app.get("/register", (req, res) => {
   const templateVars = { user: users[req.cookies["user_id"]], cookies: req.cookies };
-  if (req.cookies.user_id !== undefined) {
+  if (req.cookies.user_id) {
     return res.redirect("/urls");
   }
   res.render("user_registration", templateVars);
@@ -208,6 +208,7 @@ app.post("/register", (req, res) => {
   const userID = generateRandomString();
   const userEmail = req.body.email;
   const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10);
 
   if (userEmail === "" || password === "") {
     return res.send("<html><body><h3>Error 400: Empty field(s), check email and/or password</h3></body></html>");
@@ -220,7 +221,7 @@ app.post("/register", (req, res) => {
   users[userID] = {
     id: userID,
     email: userEmail,
-    password: password
+    password: hashedPassword,
   };
   res.cookie("user_id", userID);
   res.redirect("/urls");
