@@ -14,8 +14,14 @@ const generateRandomString = () => {
 };
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2":  {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: "userRandomID",
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userID: "user2RandomID",
+  }
 };
 
 const users = {
@@ -55,26 +61,25 @@ app.get("/urls", (req, res)=> {
   const templateVars = {
     user: users[req.cookies["user_id"]],
     urls: urlDatabase,
-    cookies: req.cookies
   };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { user: users[req.cookies["user_id"]], urls: urlDatabase, cookies: req.cookies  };
-  if (req.cookies.user_id === undefined) {
+  const templateVars = { user: users[req.cookies["user_id"]]};
+  if (!templateVars.user) {
     return res.redirect("/login");
   }
   res.render("urls_new", templateVars);
 });
 
 app.post("/urls", (req, res) => {
-  const longURL = req.body.longURL;
   const shortURL = generateRandomString();
-  if (req.cookies.user_id === undefined) {
+  const id = req.cookies.user_id;
+  if (!id || id === undefined) {
     return res.send("<html><body><h3>Error 401: Must be logged in to shorten URL's</h3></body></html>");
   }
-  urlDatabase[shortURL] = longURL;
+  urlDatabase[shortURL] = { longURL: `http://${ req.body.longURL }`, userID: id };
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -82,19 +87,20 @@ app.get("/urls/:id", (req, res) => {
   const templateVars = {
     user: users[req.cookies["user_id"]],
     shortURL: req.params.id,
-    longURL: urlDatabase[req.params.id],
-    cookies: req.cookies
+    urls: urlDatabase[req.params.id],
   };
   res.render("urls_show", templateVars);
 });
 
 app.get("/u/:id", (req, res) => {
   const shortURL = req.params.id;
-  for (const url in urlDatabase) {
-    if (url !== shortURL) {
-      return res.send("<html><body><h3>Error 404: URL not found</h3></body></html>");
-    }
+ 
+  if (!urlDatabase[shortURL]) {
+    return res.send("<html><body><h3>Error 404: URL does not exist</h3></body></html>");
   }
+
+  const longURL = urlDatabase[shortURL].longURL;
+  res.redirect(longURL);
 });
 
 app.post("/urls/:id/delete", (req,res) => {
@@ -103,15 +109,20 @@ app.post("/urls/:id/delete", (req,res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-  const longURL = req.body.longURL;
   const shortURL = req.params.id;
-  urlDatabase[shortURL] = longURL;
+  const id = req.cookies.user_id;
+
+  if (!id) {
+    return res.send("<html><body><h3>Error 401: Must be logged in to shorten URL's</h3></body></html>");
+  }
+  urlDatabase[shortURL].longURL = `http://${req.body.longURL}`;
   res.redirect(`/urls/${shortURL}`);
 });
 
 app.get("/login", (req, res) => {
-  const templateVars = { user: users[req.cookies["user_id"]], cookies: req.cookies  };
-  if (req.cookies.user_id !== undefined) {
+  const userID = req.cookies["user_id"];
+  const templateVars = { user: userID, cookies: req.cookies  };
+  if (userID !== undefined) {
     return res.redirect("/urls");
   }
   res.render("user_login", templateVars);
