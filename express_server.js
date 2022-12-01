@@ -100,6 +100,10 @@ app.post("/urls/:id", (req, res) => {
   res.redirect(`/urls/${shortURL}`);
 });
 
+app.get("/login", (req, res) => {
+  res.redirect("/login");
+});
+
 app.post("/login", (req,res) => {
   
   res.redirect("/urls");
