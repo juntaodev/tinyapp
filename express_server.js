@@ -45,6 +45,16 @@ const getUserByEmail = (userEmail) => {
   }
 };
 
+const urlsForUser = (user) => {
+  const userURLs = {};
+  for (const url in urlDatabase) {
+    if (urlDatabase[url].userID === user) {
+      userURLs[url] = urlDatabase[url].longURL;
+    }
+  }
+  return userURLs;
+};
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -58,10 +68,11 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res)=> {
-  const templateVars = {
-    user: users[req.cookies["user_id"]],
-    urls: urlDatabase,
-  };
+  const templateVars = { user: users[req.cookies["user_id"]], urls: urlsForUser(req.cookies["user_id"]) };
+
+  if (!templateVars.user) {
+    return res.send("<html><body><h3>Error 401: Must be logged in to view URL's</h3></body></html>");
+  }
   res.render("urls_index", templateVars);
 });
 
@@ -89,6 +100,18 @@ app.get("/urls/:id", (req, res) => {
     shortURL: req.params.id,
     urls: urlDatabase[req.params.id],
   };
+
+  if (!templateVars.user.id) {
+    return res.send("<html><body><h3>Error 401: Must be logged in to view URL's</h3></body></html>");
+  }
+
+  if (!urlDatabase[req.params.id]) {
+    return res.send("<html><body><h3>Error 404: URL does not exist</h3></body></html>");
+  }
+
+  if (templateVars.user.id !== urlDatabase[req.params.id].userID || !templateVars.user.id) {
+    return res.send("<html><body><h3>Error 401: This URL does not belong to you</h3></body></html>");
+  }
   res.render("urls_show", templateVars);
 });
 
