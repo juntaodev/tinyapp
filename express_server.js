@@ -3,7 +3,7 @@ const app = express();
 const PORT = 8080; // default port 8080
 const cookieSession = require('cookie-session');
 const bcrypt = require("bcryptjs");
-const { getUserByEmail } = require("./helpers");
+const { getUserByEmail, generateRandomString, urlsForUser } = require("./helpers");
 const methodOverride = require('method-override');
 
 app.set("view engine", "ejs");
@@ -42,20 +42,6 @@ const users = {
   },
 };
 
-const generateRandomString = () => {
-  return Math.random().toString(36).substring(6);
-};
-
-
-const urlsForUser = (user) => {
-  const userURLs = {};
-  for (const url in urlDatabase) {
-    if (urlDatabase[url].userID === user) {
-      userURLs[url] = urlDatabase[url].longURL;
-    }
-  }
-  return userURLs;
-};
 
 app.get("/", (req, res) => {
   res.send("Hello!");
