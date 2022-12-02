@@ -4,6 +4,7 @@ const PORT = 8080; // default port 8080
 const cookieSession = require('cookie-session');
 const bcrypt = require("bcryptjs");
 const { getUserByEmail } = require("./helpers");
+const methodOverride = require('method-override');
 
 app.set("view engine", "ejs");
 
@@ -14,6 +15,8 @@ app.use(cookieSession({
   keys: ['key', 'key2'],
   maxAge: 24 * 60 * 60 * 1000
 }));
+
+app.use(methodOverride('_method'));
 
 const urlDatabase = {
   "b2xVn2":  {
@@ -137,7 +140,7 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);
 });
 
-app.post("/urls/:id/delete", (req,res) => {
+app.delete("/urls/:id/delete", (req,res) => {
   const id = req.session["user_id"];
 
   if (!urlDatabase[req.params.id]) {
@@ -155,7 +158,7 @@ app.post("/urls/:id/delete", (req,res) => {
   res.redirect("/urls");
 });
 
-app.post("/urls/:id", (req, res) => {
+app.put("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
   const id = req.session["user_id"];
 
