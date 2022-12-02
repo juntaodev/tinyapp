@@ -4,6 +4,7 @@ const PORT = 8080; // default port 8080
 const cookieSession = require('cookie-session');
 const bcrypt = require("bcryptjs");
 const { getUserByEmail, generateRandomString, urlsForUser } = require("./helpers");
+const { urlDatabase, users } = require("./database");
 const methodOverride = require('method-override');
 
 app.set("view engine", "ejs");
@@ -18,46 +19,21 @@ app.use(cookieSession({
 
 app.use(methodOverride('_method'));
 
-const urlDatabase = {
-  "b2xVn2":  {
-    longURL: "http://www.lighthouselabs.ca",
-    userID: "userRandomID",
-  },
-  "9sm5xK": {
-    longURL: "http://www.google.com",
-    userID: "user2RandomID",
-  }
-};
-
-const users = {
-  userRandomID: {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur",
-  },
-  user2RandomID: {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk",
-  },
-};
-
-
 app.get("/", (req, res) => {
-  res.send("Hello!");
-});
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
+  const userID = req.session['user_id'];
+  if (!userID) {
+    res.redirect("/login");
+  }
+  res.redirect("/urls");
 });
 
 app.get("/urls", (req, res)=> {
-  const templateVars = { user: users[req.session["user_id"]], urls: urlsForUser(req.session["user_id"]) };
-
+  const user = req.session["user_id"];
+  const templateVars = { user: users[user], urls: urlsForUser(user, urlDatabase) };
+  
+  if (!templateVars.user) {
+    return res.status(401).send("<html><body><h3>Error: Must be logged in to view URL's</h3></body></html>");
+  }
   res.render("urls_index", templateVars);
 });
 
