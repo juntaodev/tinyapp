@@ -3,6 +3,7 @@ const app = express();
 const PORT = 8080; // default port 8080
 const cookieSession = require('cookie-session');
 const bcrypt = require("bcryptjs");
+const { getUserByEmail } = require("./helpers");
 
 app.set("view engine", "ejs");
 
@@ -42,13 +43,6 @@ const generateRandomString = () => {
   return Math.random().toString(36).substring(6);
 };
 
-const getUserByEmail = (userEmail) => {
-  for (const user in users) {
-    if (users[user].email === userEmail) {
-      return users[user];
-    }
-  }
-};
 
 const urlsForUser = (user) => {
   const userURLs = {};
@@ -183,7 +177,7 @@ app.post("/urls/:id", (req, res) => {
 app.post("/login", (req,res) => {
   const userEmail = req.body.email;
   const password = req.body.password;
-  const user = getUserByEmail(userEmail);
+  const user = getUserByEmail(userEmail, users);
 
   if (!user) {
     return res.send("<html><body><h3>Error 403: Email not found</h3></body></html>");
@@ -213,7 +207,7 @@ app.post("/register", (req, res) => {
     return res.send("<html><body><h3>Error 400: Empty field(s), check email and/or password</h3></body></html>");
   }
 
-  if (getUserByEmail(userEmail)) {
+  if (getUserByEmail(userEmail, users)) {
     return res.send("<html><body><h3>Error 400: Email already exists</h3></body></html>");
   }
 
