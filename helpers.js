@@ -1,3 +1,4 @@
+//return user if email matches a user email in database
 const getUserByEmail = (email, database) => {
   for (const data in database) {
     if (database[data].email === email) {
@@ -6,6 +7,7 @@ const getUserByEmail = (email, database) => {
   }
 };
 
+//returns a randomly generated 6 character string
 const generateRandomString = () => {
   const randomNum = Math.random().toString(16);
   return randomNum.substring(2, 8);
