@@ -34,7 +34,10 @@ app.get("/", (req, res) => {
 //render index page displaying users urls
 app.get("/urls", (req, res)=> {
   const user = req.session["user_id"];
-  const templateVars = { user: users[user], urls: urlsForUser(user, urlDatabase) };
+  const templateVars = {
+    user: users[user],
+    urls: urlsForUser(user, urlDatabase)
+  };
   
   if (!templateVars.user) {//user not logged in
     return res.status(401).send("<html><body><h3>Error: Must be logged in to view URL's</h3></body></html>");
@@ -88,7 +91,10 @@ app.get("/u/:id", (req, res) => {
 //render login page, redirect to urls if logged in
 app.get("/login", (req, res) => {
   const userID = req.session["user_id"];
-  const templateVars = { user: userID, session: req.session  };
+  const templateVars = {
+    user: userID,
+    session: req.session
+  };
 
   if (userID) {
     return res.redirect("/urls");
@@ -99,7 +105,10 @@ app.get("/login", (req, res) => {
 
 //render register page, redirect to urls if logged in
 app.get("/register", (req, res) => {
-  const templateVars = { user: users[req.session["user_id"]], session: req.session };
+  const templateVars = {
+    user: users[req.session["user_id"]],
+    session: req.session
+  };
   if (req.session["user_id"]) {
     return res.redirect("/urls");
   }
@@ -115,7 +124,10 @@ app.post("/urls", (req, res) => {
   if (!id) {
     return res.send("<html><body><h3>Error 401: Must be logged in to shorten URL's</h3></body></html>");
   }
-  urlDatabase[shortURL] = { longURL: req.body.longURL, userID: id };
+  urlDatabase[shortURL] = {
+    longURL: req.body.longURL,
+    userID: id
+  };
   res.redirect(`/urls/${shortURL}`);
 });
 
