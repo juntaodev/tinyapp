@@ -62,7 +62,7 @@ app.get("/urls/:id", (req, res) => {
     urls: urlDatabase[req.params.id],
   };
 
-  if (!templateVars.user.id) {//user not logged in
+  if (!templateVars.user) {//user not logged in
     return res.send("<html><body><h3>Error 401: Must be logged in to view URL's</h3></body></html>");
   }
 
